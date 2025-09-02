@@ -1,27 +1,29 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Dashboard" />
-
     <AuthenticatedLayout>
         <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800"
-            >
-                Dashboard
-            </h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    class="overflow-hidden bg-white shadow-sm sm:rounded-lg"
-                >
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        You're logged in!
+                        <h1 class="text-2xl font-bold mb-4">Welcome to your Dashboard!</h1>
+                        <p class="mb-4">This is your main dashboard page.</p>
+                        
+                        <div class="mt-6">
+                            <Link 
+                                :href="route('tickets.index')" 
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            >
+                                Go to Tickets
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
