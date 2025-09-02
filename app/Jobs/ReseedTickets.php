@@ -96,10 +96,6 @@ class ReseedTickets implements ShouldQueue
             Ticket::insert($guaranteedWinners);
             \Log::info('Guaranteed winners created successfully', ['count' => count($guaranteedWinners)]);
             
-            // Try one by one for guaranteed winners too
-            foreach ($guaranteedWinners as $winner) {
-                Ticket::create($winner);
-            }
             
             \Log::info('Transaction completed', ['total_tickets_created' => $totalCreated + count($guaranteedWinners)]);
         });
@@ -113,9 +109,11 @@ class ReseedTickets implements ShouldQueue
         do {
             $attempts++;
             
-            if ($attempts < $maxAttempts) {
-                $code = 'Ticket-' . substr($timestampStr, -8) . '-' . $random1 . $random2;
-            }
+            $random1 = strtoupper(Str::random(4));
+            $random2 = strtoupper(Str::random(3));
+            
+            $code = 'Ticket-' . $random1 . $random2;
+        
             
             // Double-check the code doesn't already exist in database.
             if (!isset($existingCodes[$code])) {
@@ -128,10 +126,9 @@ class ReseedTickets implements ShouldQueue
             
         } while (isset($existingCodes[$code]) && $attempts <= $maxAttempts);
         
-        
         // Mark this code as used.
         $existingCodes[$code] = true;
-                
+            
         return $code;
     }
 

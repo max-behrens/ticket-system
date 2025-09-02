@@ -14,7 +14,7 @@ class TicketFactory extends Factory
         $prizeValue = $isWinner ? $this->faker->randomElement([1.00, 5.00, 10.00, 25.00, 100.00]) : 0;
 
         return [
-            'code' => strtoupper($this->faker->unique()->lexify('Ticket-?????')),
+            'code' => strtoupper($this->faker->unique()->lexify('Ticket-???????')),
             'prize_value' => $prizeValue,
             'is_winner' => $isWinner,
             'is_sold' => false,
