@@ -20,10 +20,15 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['au
 
 Route::middleware('auth')->group(function () {
 
+    // Custom routes:
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
     Route::post('/tickets/purchase', [TicketController::class, 'purchase'])->name('tickets.purchase');
     Route::get('/tickets/status/{purchase}', [TicketController::class, 'status'])->name('tickets.status');
+    Route::get('/tickets/latest-purchase', [TicketController::class, 'latestPurchase'])->name('tickets.latest-purchase');
+    Route::get('/tickets/all/{purchaseId}', [TicketController::class, 'allTickets'])->name('tickets.all');
+    Route::get('/tickets/all-user-tickets', [TicketController::class, 'allUserTickets'])->middleware('auth');
 
+    // Default laravel project routes:
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

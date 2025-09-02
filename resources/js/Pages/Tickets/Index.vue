@@ -10,6 +10,17 @@ const isProcessing = ref(false)
 const progress = ref(0)
 const results = ref([])
 const totalResults = ref(0)
+const currentPage = ref(1)
+const perPage = ref(50)
+const totalPages = ref(0)
+const showAllTicketsModal = ref(false)
+const allTickets = ref([])
+const isLoadingAllTickets = ref(false)
+
+// Load all user tickets on component mount.
+onMounted(() => {
+    loadAllUserTickets()
+})
 
 const purchaseTickets = async () => {
     isProcessing.value = true
@@ -51,7 +62,12 @@ const pollStatus = async (purchaseId) => {
                 return
             }
 
-            const response = await fetch(`/tickets/status/${purchaseId}`)
+            const response = await fetch(`/tickets/status/${purchaseId}?page=${currentPage.value}&per_page=${perPage.value}`)
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`)
+            }
+
             const data = await response.json()
 
             if (data.status === 'processing') {
@@ -63,10 +79,12 @@ const pollStatus = async (purchaseId) => {
                 progress.value = 100
                 results.value = data.results || []
                 totalResults.value = data.total_results || 0
+                totalPages.value = Math.ceil(data.total_results / perPage.value)
                 isProcessing.value = false
                 
                 // Refresh page to update total winnings after a small delay.
                 setTimeout(() => {
+                    loadAllUserTickets()
                     router.reload()
                 }, 1000)
             } else if (data.status === 'failed') {
@@ -81,6 +99,74 @@ const pollStatus = async (purchaseId) => {
         }
     }, 500)
 }
+
+// Pagination methods.
+const loadPage = async (page) => {
+    if (!totalResults.value) return
+    
+    try {
+        // Get the latest purchase ID from results.
+        const latestPurchase = await fetch('/tickets/latest-purchase')
+        const purchaseData = await latestPurchase.json()
+        
+        const response = await fetch(`/tickets/status/${purchaseData.purchase_id}?page=${page}&per_page=${perPage.value}`)
+        const data = await response.json()
+        
+        if (data.status === 'completed') {
+            results.value = data.results || []
+            currentPage.value = page
+        }
+    } catch (error) {
+        console.error('Failed to load page:', error)
+    }
+}
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) {
+        loadPage(currentPage.value + 1)
+    }
+}
+
+const prevPage = () => {
+    if (currentPage.value > 1) {
+        loadPage(currentPage.value - 1)
+    }
+}
+
+// Load all user tickets from all purchases.
+const loadAllUserTickets = async () => {
+    isLoadingAllTickets.value = true
+    
+    try {
+        const response = await fetch('/tickets/all-user-tickets')
+        const data = await response.json()
+        
+        allTickets.value = data.tickets || []
+    } catch (error) {
+        console.error('Failed to load all user tickets:', error)
+    } finally {
+        isLoadingAllTickets.value = false
+    }
+}
+
+// Frontend code to export all tickets purchased.
+const exportTickets = () => {
+    const csvContent = [
+        'Code,Prize Won,Is Winner,Purchase Date',
+        ...allTickets.value.map(ticket => 
+            `${ticket.code},£${ticket.prize_won},${ticket.is_winner ? 'Yes' : 'No'},${ticket.purchase_date || 'N/A'}`
+        )
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `all-tickets-${Date.now()}.csv`
+    a.click()
+    window.URL.revokeObjectURL(url)
+}
+
 </script>
 
 <template>
@@ -97,7 +183,12 @@ const pollStatus = async (purchaseId) => {
                             <h2 class="text-xl font-semibold">Total Winnings: £{{ totalWinnings }}</h2>
                         </div>
 
-                        <!-- User Input Section -->
+                        <!-- Total Tickets Section -->
+                        <div class="mb-6 p-4 bg-blue-100 rounded-lg">
+                            <h2 class="text-lg font-semibold">Total Tickets Purchased: {{ allTickets.length }}</h2>
+                            <p class="text-sm text-gray-600">Winners: {{ allTickets.filter(t => t.is_winner).length }} | Non-winners: {{ allTickets.filter(t => !t.is_winner).length }}</p>
+                        </div>
+
                         <div class="mb-6">
                             <label class="block text-sm font-medium mb-2">Select Quantity (multiples of 1000)</label>
                             <select v-model="selectedQuantity" class="border rounded px-3 py-2 w-48">
@@ -110,15 +201,25 @@ const pollStatus = async (purchaseId) => {
                             <p class="text-sm text-gray-600 mt-1">Cost: £{{ (selectedQuantity * 0.10).toFixed(2) }}</p>
                         </div>
 
-                        <button 
-                            @click="purchaseTickets"
-                            :disabled="isProcessing"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-                        >
-                            {{ isProcessing ? 'Processing...' : 'Buy Tickets' }}
-                        </button>
+                        <div class="mb-6 space-x-4">
+                            <button 
+                                @click="purchaseTickets"
+                                :disabled="isProcessing"
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                            >
+                                {{ isProcessing ? 'Processing...' : 'Buy Tickets' }}
+                            </button>
 
-                        <!-- Processing Section -->
+                            <!-- Always available button to view all tickets -->
+                            <button 
+                                @click="showAllTicketsModal = true; loadAllUserTickets()"
+                                :disabled="isLoadingAllTickets"
+                                class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                            >
+                                {{ isLoadingAllTickets ? 'Loading...' : 'View All Tickets' }}
+                            </button>
+                        </div>
+
                         <div v-if="isProcessing" class="mt-4">
                             <div class="w-full bg-gray-200 rounded-full h-2.5">
                                 <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" :style="`width: ${progress}%`"></div>
@@ -128,10 +229,11 @@ const pollStatus = async (purchaseId) => {
 
                         <!-- Results Section -->
                         <div v-if="results.length > 0" class="mt-6">
-                            <h3 class="text-xl font-semibold mb-4">Your Results</h3>
+ 
                             <p class="text-sm text-gray-600 mb-4">
-                                Showing {{ results.length }} of {{ totalResults }} tickets (winners first)
+                                Showing {{ results.length }} of {{ totalResults }} purchased tickets - Page {{ currentPage }} of {{ totalPages }}
                             </p>
+                            
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div v-for="result in results" :key="result.code" 
                                      :class="result.is_winner ? 'bg-green-100 border-green-500' : 'bg-gray-100 border-gray-300'"
@@ -139,6 +241,71 @@ const pollStatus = async (purchaseId) => {
                                     <p class="font-mono">{{ result.code }}</p>
                                     <p v-if="result.is_winner" class="text-green-600 font-bold">Won: £{{ result.prize_won }}</p>
                                     <p v-else class="text-gray-600">No prize</p>
+                                </div>
+                            </div>
+
+                            <!-- Pagination Controls -->
+                            <div v-if="totalPages > 1" class="flex justify-center items-center mt-6 space-x-4">
+                                <button 
+                                    @click="prevPage"
+                                    :disabled="currentPage <= 1"
+                                    class="flex items-center px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+                                >
+                                    ← Previous
+                                </button>
+                                
+                                <span class="text-sm text-gray-600">
+                                    Page {{ currentPage }} of {{ totalPages }}
+                                </span>
+                                
+                                <button 
+                                    @click="nextPage"
+                                    :disabled="currentPage >= totalPages"
+                                    class="flex items-center px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- All Tickets Modal -->
+                        <div v-if="showAllTicketsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto">
+                                <div class="flex justify-between items-center mb-4">
+                                    <div>
+                                        <h3 class="text-xl mr-2 font-semibold">All Purchased Tickets</h3>
+                                    </div>
+                                    <div class="space-x-2">
+                                        <button 
+                                            @click="exportTickets"
+                                            :disabled="isLoadingAllTickets"
+                                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                                        >
+                                            Export CSV
+                                        </button>
+                                        <button 
+                                            @click="showAllTicketsModal = false"
+                                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                
+                                <div v-if="allTickets.length === 0" class="text-center py-8 text-gray-500">
+                                    No tickets found.
+                                </div>
+                                
+                                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+                                    <div v-for="ticket in allTickets" :key="ticket.code"
+                                         :class="ticket.is_winner ? 'bg-green-100 border-green-500' : 'bg-gray-100 border-gray-300'"
+                                         class="border-2 rounded p-3">
+                                        <p class="font-mono text-sm">{{ ticket.code }}</p>
+                                        <p v-if="ticket.is_winner" class="text-green-600 font-bold text-sm">Won: £{{ ticket.prize_won }}</p>
+                                        <p v-else class="text-gray-600 text-sm">No prize</p>
+                                        <p v-if="ticket.purchase_date" class="text-xs text-gray-500 mt-1">{{ new Date(ticket.purchase_date).toLocaleDateString() }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
