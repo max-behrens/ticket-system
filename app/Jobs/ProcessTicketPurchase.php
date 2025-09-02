@@ -8,9 +8,9 @@ use App\Models\TicketResult;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Jobs\ReseedTickets; 
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
 class ProcessTicketPurchase implements ShouldQueue
 {
@@ -30,9 +30,18 @@ class ProcessTicketPurchase implements ShouldQueue
                 ->limit($this->purchase->quantity)
                 ->get();
 
-            // Check if we have enough tickets.
+            // Check if there are enough tickets.
             if ($tickets->count() < $this->purchase->quantity) {
                 $this->purchase->update(['status' => 'failed']);
+                
+                // Trigger reseeding if the ticket process is out of tickets.
+                ReseedTickets::dispatch();
+                
+                \Log::warning('Purchase failed due to insufficient tickets', [
+                    'purchase_id' => $this->purchase->id,
+                    'requested' => $this->purchase->quantity,
+                    'available' => $tickets->count()
+                ]);
                 return;
             }
 

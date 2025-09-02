@@ -30,6 +30,18 @@ class TicketController extends Controller
             'quantity' => 'required|integer|min:1000|max:10000'
         ]);
 
+        // Check if there are enough available tickets.
+        $availableTickets = Ticket::where('is_sold', false)->count();
+        
+        if ($availableTickets < $request->quantity) {
+            // Trigger reseeding job if not enough tickets for user requested purchase.
+            ReseedTickets::dispatch();
+            
+            return response()->json([
+                'error' => 'Not enough tickets available. New tickets are being generated, please try again in a moment.'
+            ], 400);
+        }
+
         $purchase = Purchase::create([
             'user_id' => Auth::id(),
             'quantity' => $request->quantity,
