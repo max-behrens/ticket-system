@@ -1,61 +1,124 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## About the Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
 
-## About Laravel
+Within this Laravel & Vue JS bulk ticket purchasing system:
+TicketController.php handles HTTP requests for purchasing tickets and checking the status of currently purchased tickets,
+ProcessTicketPurchase.php job processes purchases by assigning random available tickets to users, 
+ReseedTickets.php job automatically generates new tickets when available tickets are low, 
+and DeleteSoldTickets.php runs daily via Laravel's scheduler to delete sold tickets. 
+The Ticket.php, Purchase.php, and TicketResult.php models manage the database relationships, while TicketFactory.php generates initial tickets with realistic win probabilities. 
+TicketSeeder.php and UserSeeder.php populate the database with initial tickets and a test user,
+Index.vue provides real-time progress tracking and results display, 
+and TicketPurchaseTest.php and TicketModelTest.php ensure the purchasing and win distributions work correctly through automated testing.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Project Structure
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```
+ticket-system/
+├── app/
+│   ├── Http/
+│   │   └── Controllers/
+│   │       └── TicketController.php
+│   ├── Jobs/
+│   │   └── ProcessTicketPurchase.php
+│   │   └── ReseedTickets.php
+│   │   └── DeleteSoldTickets.php
+│   └── Models/
+│       ├── Purchase.php
+│       ├── Ticket.php
+│       ├── TicketResult.php
+│       └── User.php
+├── database/
+│   ├── factories/
+│   │   ├── TicketFactory.php
+│   │   └── UserFactory.php
+│   ├── migrations/
+│   │   ├── create_tickets_table.php
+│   │   ├── create_purchases_table.php
+│   │   └── create_ticket_results_table.php
+│   └── seeders/
+│       ├── DatabaseSeeder.php
+│       ├── TicketSeeder.php
+│       └── UserSeeder.php
+├── resources/
+│   └── js/
+│       └── Pages/
+│           └── Tickets/
+│               └── Index.vue
+├── routes/
+│   └── web.php
+├── tests/
+│   ├── Feature/
+│   │   └── TicketPurchaseTest.php
+│   └── Unit/
+│       └── TicketModelTest.php
+├── .env
+```
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Pitch for Expansion Using Laravel
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Although this project is already built in Laravel, 
+I have some expansion ideas that could transform this ticket purchasing system into a more user interactive lottery platform:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Real-time features could be implemented using Laravel WebSockets or Pusher to show live ticket processing, winner announcements, 
+and purchase statistics across all users. 
 
-## Laravel Sponsors
+Payment gateway integration with Stripe or PayPal would enable real money transactions, 
+so we could then limit user purchasing based on their current budget.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Create a ticket type model with different types for different tickets; 
+for example having certain winning tickets be of a certain ticket type that gives them access to interact with a new feature of the site.
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
-## Contributing
+## Local Installation
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**Install required packages**
+```
+composer require laravel/breeze
+npm install
+npm install vue@next @vitejs/plugin-vue
+npm install @headlessui/vue @heroicons/vue
+```
 
-## Code of Conduct
+**Setup Breeze with Vue**
+```
+php artisan breeze:install vue
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Database setup**
+```
+php artisan migrate
+```
 
-## Security Vulnerabilities
+**Update .env**
+```
+envDB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ticket_system
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+QUEUE_CONNECTION=database
+```
 
-## License
+**Setup localhost**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+php artisan serve
+
+npm run dev
+```
+
+**Run seeders, phpunit tets, queued & scheduled jobs**
+```
+php artisan db:seed
+
+php artisan test
+
+php artisan queue:work
+```
