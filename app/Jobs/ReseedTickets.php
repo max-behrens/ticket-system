@@ -31,8 +31,8 @@ class ReseedTickets implements ShouldQueue
 
         DB::transaction(function() use ($existingCodes) {
 
-            // Generate 5000 new tickets (10 batches of 500).
-            $batchSize = 500;
+            // Generate 500 new tickets (10 batches of 50).
+            $batchSize = 50;
             $totalCreated = 0;
             
             for ($batch = 0; $batch < 10; $batch++) {
@@ -41,7 +41,7 @@ class ReseedTickets implements ShouldQueue
                 
                 for ($i = 0; $i < $batchSize; $i++) {
                     $code = $this->generateUniqueCode($existingCodes, $batch, $i);
-                    $isWinner = mt_rand(1, 10000) === 1;
+                    $isWinner = mt_rand(1, 500000) === 1;
                     $prizeValue = $isWinner ? $this->getRandomPrize() : 0;
                     
                     $batchTickets[] = [

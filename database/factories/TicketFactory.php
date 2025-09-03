@@ -8,8 +8,8 @@ class TicketFactory extends Factory
 {
     public function definition()
     {
-        // ~0.01% chance of a ticket being a winner.
-        $isWinner = mt_rand(1, 10000) === 1;
+        // ~0.05% chance of a ticket being a winner.
+        $isWinner = mt_rand(1, 50000) === 1;
 
 
         // Assign random prize values only if winner
