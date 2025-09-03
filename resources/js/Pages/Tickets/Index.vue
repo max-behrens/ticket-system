@@ -21,7 +21,6 @@ const isLoadingAllTickets = ref(false)
 onMounted(() => {
     loadAllUserTickets()
 })
-
 const purchaseTickets = async () => {
     isProcessing.value = true
     progress.value = 0
@@ -43,6 +42,10 @@ const purchaseTickets = async () => {
     } catch (error) {
         console.error('Purchase failed:', error)
         isProcessing.value = false
+        alert('Purchase expired after reseed, refreshing page...')
+        setTimeout(() => {
+            window.location.reload()
+        }, 1500) // wait 1.5s before reload.
     }
 }
 

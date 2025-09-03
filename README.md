@@ -2,13 +2,13 @@
 
 
 Within this Laravel & Vue JS bulk ticket purchasing system:
-TicketController.php handles HTTP requests for purchasing tickets and checking the status of currently purchased tickets,
-ProcessTicketPurchase.php job processes purchases by assigning random available tickets to users, 
-ReseedTickets.php job automatically generates new tickets when available tickets are low, 
+TicketController.php handles HTTP requests for purchasing tickets and checking the status of currently purchased tickets;
+ProcessTicketPurchase.php job processes purchases by assigning random available tickets to users;
+ReseedTickets.php job automatically generates new tickets when available tickets are low;
 and DeleteSoldTickets.php runs daily via Laravel's scheduler to delete sold tickets. 
 The Ticket.php, Purchase.php, and TicketResult.php models manage the database relationships, while TicketFactory.php generates initial tickets with realistic win probabilities. 
-TicketSeeder.php and UserSeeder.php populate the database with initial tickets and a test user,
-Index.vue provides real-time progress tracking and results display, 
+TicketSeeder.php and UserSeeder.php populate the database with initial tickets and a test user;
+Index.vue provides real-time progress tracking and results display, and full purchase visibility and export; 
 and TicketPurchaseTest.php and TicketModelTest.php ensure the purchasing and win distributions work correctly through automated testing.
 
 
@@ -62,7 +62,13 @@ ticket-system/
 Although this project is already built in Laravel, 
 I have some expansion ideas that could transform this ticket purchasing system into a more user interactive lottery platform:
 
-Real-time features could be implemented using Laravel WebSockets or Pusher to show live ticket processing, winner announcements, 
+Frontend error handling when the ReseedTickets job has not yet run and there are insufficient tickets to make the user purchase.
+
+Add user purchase statics and settings to dashboard vue file.
+
+Update the queue connection from sync to database in the future so that dispatched jobs are stored in the jobs table.
+
+Real-time features could be implemented using Laravel WebSockets or Pusher to show live ticket processing, winner announcements,
 and purchase statistics across all users. 
 
 Payment gateway integration with Stripe or PayPal would enable real money transactions, 
@@ -96,29 +102,29 @@ php artisan migrate
 
 **Update .env**
 ```
-envDB_CONNECTION=mysql
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=ticket_system
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
 
-QUEUE_CONNECTION=database
+QUEUE_CONNECTION=sync
 ```
 
-**Setup localhost**
+**Setup localhost with queued & scheduled jobs**
 
 ```
 php artisan serve
 
 npm run dev
-```
-
-**Run seeders, phpunit tets, queued & scheduled jobs**
-```
-php artisan db:seed
-
-php artisan test
 
 php artisan queue:work
+```
+
+**Run seeders, phpunit tets**
+```
+php artisan migrate:fresh --seed
+
+php artisan test
 ```
