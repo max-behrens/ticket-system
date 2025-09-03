@@ -182,12 +182,12 @@ const exportTickets = () => {
                         <!-- Title Section -->
                         <h1 class="text-3xl font-bold mb-6">Ticket System</h1>
                         
-                        <div class="mb-6 p-4 bg-green-100 rounded-lg">
+                        <div class="mb-6 p-4 bg-green-300/50 rounded-lg">
                             <h2 class="text-xl font-semibold">Total Winnings: £{{ totalWinnings }}</h2>
                         </div>
 
                         <!-- Total Tickets Section -->
-                        <div class="mb-6 p-4 bg-blue-100 rounded-lg">
+                        <div class="mb-6 p-4 bg-blue-300/50 rounded-lg">
                             <h2 class="text-lg font-semibold">Total Tickets Purchased: {{ allTickets.length }}</h2>
                             <p class="text-sm text-gray-600">Winners: {{ allTickets.filter(t => t.is_winner).length }} | Non-winners: {{ allTickets.filter(t => !t.is_winner).length }}</p>
                         </div>
@@ -238,9 +238,10 @@ const exportTickets = () => {
                             </p>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div v-for="result in results" :key="result.code" 
-                                     :class="result.is_winner ? 'bg-green-100 border-green-500' : 'bg-gray-100 border-gray-300'"
-                                     class="border-2 rounded p-4">
+                                <div v-for="result in results" :key="result.code"
+                                    :class="result.is_winner ? 'bg-green-100 border-green-500' : 'bg-gray-100 border-gray-300'"
+                                    class="border-2 rounded p-4 transform transition-transform duration-300 
+                                        hover:scale-105 hover:-translate-y-1 hover:rotate-1 hover:shadow-lg">
                                     <p class="font-mono">{{ result.code }}</p>
                                     <p v-if="result.is_winner" class="text-green-600 font-bold">Won: £{{ result.prize_won }}</p>
                                     <p v-else class="text-gray-600">No prize</p>

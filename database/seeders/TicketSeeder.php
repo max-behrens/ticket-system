@@ -13,7 +13,7 @@ class TicketSeeder extends Seeder
         Ticket::factory(5000)->create();
         
         // Ensure some seeded tickets are already winners.
-        Ticket::factory(10)->create(['is_winner' => true, 'prize_value' => 10.00]);
-        Ticket::factory(5)->create(['is_winner' => true, 'prize_value' => 100.00]);
+        Ticket::factory(3)->create(['is_winner' => true, 'prize_value' => 10.00]);
+        Ticket::factory(1)->create(['is_winner' => true, 'prize_value' => 100.00]);
     }
 }

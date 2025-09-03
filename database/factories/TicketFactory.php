@@ -8,9 +8,11 @@ class TicketFactory extends Factory
 {
     public function definition()
     {
-        // 0.002% chance of havinga winning ticket code.
-        $isWinner = $this->faker->numberBetween(1, 1000) <= (1000 * 0.00002);
-        // Have random prize values fo winning tickets.
+        // ~0.01% chance of a ticket being a winner.
+        $isWinner = mt_rand(1, 10000) === 1;
+
+
+        // Assign random prize values only if winner
         $prizeValue = $isWinner ? $this->faker->randomElement([1.00, 5.00, 10.00, 25.00, 100.00]) : 0;
 
         return [

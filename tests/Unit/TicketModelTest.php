@@ -32,7 +32,7 @@ class TicketModelTest extends TestCase
         $tickets = Ticket::factory(50000)->create();
         $winners = $tickets->where('is_winner', true)->count();
        
-        // With 0.002% rate, expect roughly 1 winner per 50,000 tickets.
+        // With 0.0002% rate, expect roughly 1 winner per 50,000 tickets.
         $this->assertGreaterThanOrEqual(0, $winners);
         $this->assertLessThanOrEqual(5, $winners);
     }

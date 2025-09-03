@@ -41,7 +41,7 @@ class ReseedTickets implements ShouldQueue
                 
                 for ($i = 0; $i < $batchSize; $i++) {
                     $code = $this->generateUniqueCode($existingCodes, $batch, $i);
-                    $isWinner = (rand(1, 100000) <= 2);
+                    $isWinner = mt_rand(1, 10000) === 1;
                     $prizeValue = $isWinner ? $this->getRandomPrize() : 0;
                     
                     $batchTickets[] = [
